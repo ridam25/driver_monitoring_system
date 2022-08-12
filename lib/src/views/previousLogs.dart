@@ -42,7 +42,7 @@ class _PreviousLogsState extends State<PreviousLogs> {
         itemBuilder: ((context, index) {
           return ListTile(
             title: Text("Previous Log ${index + 1}"),
-            subtitle: logs[index].duration.text.make(),
+            subtitle: "${logs[index].duration} seconds".text.make(),
           );
         }),
       ),

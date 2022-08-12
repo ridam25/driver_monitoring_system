@@ -21,13 +21,13 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  final int _duration = 10;
+  final int _duration = 7200;
   final CountDownController _controller = CountDownController();
   final AudioPlayer _audioPlayer = AudioPlayer();
   bool playAudio = false;
   final box = GetStorage();
   bool isStart = true;
-  bool isPause = true;
+
   @override
   void initState() {
     super.initState();
@@ -50,7 +50,7 @@ class _HomeState extends State<Home> {
 
   fetchContacts() async {
     List<ContactModel>? contcts = await contactsDb.fetchContacts();
-    if (contcts == null || contcts.length <= 3) {
+    if (contcts == null || contcts.length < 3) {
       return true;
     }
     return false;
@@ -63,8 +63,8 @@ class _HomeState extends State<Home> {
     }
   }
 
-  DateTime? startTime = null;
-  DateTime? endTime = null;
+  DateTime? startTime;
+  DateTime? endTime;
 
   PrevLogService logsDb = PrevLogService();
 
@@ -87,10 +87,6 @@ class _HomeState extends State<Home> {
             ElevatedButton(
               onPressed: () => Get.to(() => PreviousLogs()),
               child: "Previous Logs".text.make(),
-            ),
-            ElevatedButton(
-              onPressed: () => Get.to(() => SoSContacts()),
-              child: "Configure SOS delay".text.make(),
             ),
             ElevatedButton(
               onPressed: () => Auth().logout(),
@@ -145,6 +141,9 @@ class _HomeState extends State<Home> {
               if (isStart) {
                 _controller.start();
                 startTime = DateTime.now();
+                setState(() {
+                  isStart = false;
+                });
               } else {
                 _controller.restart();
                 _controller.pause();
@@ -152,10 +151,10 @@ class _HomeState extends State<Home> {
                 await logsDb.addItem(
                   PrevLog(duration: endTime!.difference(startTime!).inSeconds),
                 );
+                setState(() {
+                  isStart = true;
+                });
               }
-              setState(() {
-                isStart = !isStart;
-              });
             },
             child: isStart
                 ? "Start a new journey".text.make()

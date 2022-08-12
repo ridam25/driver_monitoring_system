@@ -17,27 +17,21 @@ class _SoSContactsState extends State<SoSContacts> {
   ContactService contactsDb = ContactService();
   List<ContactModel> contacts = [];
 
-  bool contactCheck = false;
   fetchContacts() async {
     var contcts = await contactsDb.fetchContacts();
     setState(() {
       contacts = contcts;
     });
-    if (contacts == null || contacts.length <= 3) {
-      contactCheck = true;
+    if (contacts == null || contacts.length < 3) {
+      return true;
     }
-    setState(() {});
+    return false;
   }
 
   void checkContactLength() async {
-    await fetchContacts();
-    if (!contactCheck) {
-      Navigator.pushReplacement<void, void>(
-        context,
-        MaterialPageRoute<void>(
-          builder: (BuildContext context) => Home(),
-        ),
-      );
+    bool check = await fetchContacts();
+    if (!check) {
+      Get.offAll(Home());
     }
   }
 
@@ -64,6 +58,13 @@ class _SoSContactsState extends State<SoSContacts> {
           return ListTile(
             title: contacts[index].name.text.make(),
             subtitle: contacts[index].phone.text.make(),
+            trailing: IconButton(
+              icon: Icon(Icons.remove),
+              onPressed: () async {
+                await contactsDb.deleteContact(contacts[index].id!);
+                await fetchContacts();
+              },
+            ),
           );
         }),
       ),
