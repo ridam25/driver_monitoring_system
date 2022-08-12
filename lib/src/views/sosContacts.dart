@@ -1,7 +1,9 @@
 import 'package:driver_monitoring/src/models/contact.dart';
 import 'package:driver_monitoring/src/services/contactService.dart';
+import 'package:driver_monitoring/src/views/home.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttercontactpicker/fluttercontactpicker.dart';
+import 'package:get/get.dart';
 import 'package:velocity_x/velocity_x.dart';
 
 class SoSContacts extends StatefulWidget {
@@ -15,11 +17,28 @@ class _SoSContactsState extends State<SoSContacts> {
   ContactService contactsDb = ContactService();
   List<ContactModel> contacts = [];
 
+  bool contactCheck = false;
   fetchContacts() async {
     var contcts = await contactsDb.fetchContacts();
     setState(() {
       contacts = contcts;
     });
+    if (contacts == null || contacts.length <= 3) {
+      contactCheck = true;
+    }
+    setState(() {});
+  }
+
+  void checkContactLength() async {
+    await fetchContacts();
+    if (!contactCheck) {
+      Navigator.pushReplacement<void, void>(
+        context,
+        MaterialPageRoute<void>(
+          builder: (BuildContext context) => Home(),
+        ),
+      );
+    }
   }
 
   @override
@@ -32,7 +51,12 @@ class _SoSContactsState extends State<SoSContacts> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: "SOS Contacts".text.make(),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => checkContactLength(),
+        ),
       ),
       body: ListView.builder(
         itemCount: contacts.length,

@@ -1,6 +1,12 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:circular_countdown_timer/circular_countdown_timer.dart';
+import 'package:driver_monitoring/src/models/contact.dart';
+import 'package:driver_monitoring/src/models/prevLog.dart';
+import 'package:driver_monitoring/src/services/contactService.dart';
+import 'package:driver_monitoring/src/services/prevLogService.dart';
 import 'package:driver_monitoring/src/views/alarmSound.dart';
+import 'package:driver_monitoring/src/views/auth.dart';
+import 'package:driver_monitoring/src/views/previousLogs.dart';
 import 'package:driver_monitoring/src/views/sosContacts.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -25,6 +31,7 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
+    checkContactLength();
   }
 
   void toggleSOS() async {
@@ -38,6 +45,28 @@ class _HomeState extends State<Home> {
       await _audioPlayer.stop();
     }
   }
+
+  ContactService contactsDb = ContactService();
+
+  fetchContacts() async {
+    List<ContactModel>? contcts = await contactsDb.fetchContacts();
+    if (contcts == null || contcts.length <= 3) {
+      return true;
+    }
+    return false;
+  }
+
+  void checkContactLength() async {
+    bool gotoSoS = await fetchContacts();
+    if (gotoSoS) {
+      Get.to(SoSContacts());
+    }
+  }
+
+  DateTime? startTime = null;
+  DateTime? endTime = null;
+
+  PrevLogService logsDb = PrevLogService();
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +85,7 @@ class _HomeState extends State<Home> {
               child: "Change Alarm Sound".text.make(),
             ),
             ElevatedButton(
-              onPressed: () => Get.to(() => SoSContacts()),
+              onPressed: () => Get.to(() => PreviousLogs()),
               child: "Previous Logs".text.make(),
             ),
             ElevatedButton(
@@ -64,7 +93,7 @@ class _HomeState extends State<Home> {
               child: "Configure SOS delay".text.make(),
             ),
             ElevatedButton(
-              onPressed: () => Get.to(() => SoSContacts()),
+              onPressed: () => Auth().logout(),
               child: "Logout".text.make(),
             ),
           ],
@@ -112,12 +141,17 @@ class _HomeState extends State<Home> {
               ? "Press SOS button to stop alarm".text.makeCentered()
               : Container(),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               if (isStart) {
                 _controller.start();
+                startTime = DateTime.now();
               } else {
                 _controller.restart();
                 _controller.pause();
+                endTime = DateTime.now();
+                await logsDb.addItem(
+                  PrevLog(duration: endTime!.difference(startTime!).inSeconds),
+                );
               }
               setState(() {
                 isStart = !isStart;

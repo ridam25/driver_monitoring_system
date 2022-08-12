@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.driver_monitoring">
+    package="com.example.capstoneproject">
    <application
         android:label="driver_monitoring"
         android:name="${applicationName}"

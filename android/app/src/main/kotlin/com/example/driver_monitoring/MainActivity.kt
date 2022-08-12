@@ -1,4 +1,4 @@
-package com.example.driver_monitoring
+package com.example.capstoneproject
 
 import io.flutter.embedding.android.FlutterActivity
 
